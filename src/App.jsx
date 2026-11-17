@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { useForm, ValidationError } from '@formspree/react';
 
 const TOTAL_STEPS = 4;
+// Replace with your real Formspree form ID
+const FORMSPREE_ID = "mrpqqeag";
 
 export default function App() {
   const [currentStep, setCurrentStep] = useState(1);
   const [errors, setErrors] = useState({});
-
-  // Replace with your real Formspree form ID
-  const [state, handleSubmit] = useForm("mrpqqeag");
+  const [submitting, setSubmitting] = useState(false);
+  const [succeeded, setSucceeded] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -74,9 +74,43 @@ export default function App() {
 
   const prev = () => setCurrentStep(s => Math.max(1, s - 1));
 
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateStep(currentStep)) return;
+
+    setSubmitting(true);
+    const data = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value !== null && value !== '') {
+        data.append(key, value);
+      }
+    });
+
+    try {
+      const response = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+        method: 'POST',
+        body: data,
+        headers: {
+          Accept: 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        setSucceeded(true);
+      } else {
+        alert('Something went wrong. Please try again.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const progress = ((currentStep - 1) / TOTAL_STEPS) * 100;
 
-  if (state.succeeded) {
+  if (succeeded) {
     return (
       <div className="container">
         <div className="card">
@@ -103,8 +137,7 @@ export default function App() {
           <div className="step-label">Step {currentStep} of {TOTAL_STEPS}</div>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          {/* All fields stay in the DOM so Formspree receives everything */}
+        <form onSubmit={handleFormSubmit}>
           <div style={{ display: currentStep === 1 ? 'block' : 'none' }}>
             <div className="field">
               <label>Full Name</label>
@@ -116,7 +149,6 @@ export default function App() {
               <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" />
               <div className="hint">We'll use this to contact you about your application.</div>
               {errors.email && <div className="error">{errors.email}</div>}
-              <ValidationError prefix="Email" field="email" errors={state.errors} />
             </div>
             <div className="field">
               <label>Phone Number</label>
@@ -265,8 +297,8 @@ export default function App() {
             {currentStep < TOTAL_STEPS ? (
               <button type="button" className="btn-primary" onClick={next}>Continue</button>
             ) : (
-              <button type="submit" className="btn-primary" disabled={state.submitting}>
-                {state.submitting ? 'Submitting...' : 'Submit Application'}
+              <button type="submit" className="btn-primary" disabled={submitting}>
+                {submitting ? 'Submitting...' : 'Submit Application'}
               </button>
             )}
           </div>
