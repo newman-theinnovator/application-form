@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 
 const TOTAL_STEPS = 4;
-// ↓↓↓ PUT YOUR WEB3FORMS ACCESS KEY HERE ↓↓↓
 const WEB3FORMS_KEY = "a0f55f76-e0d7-4511-98e6-6b0469e088ba";
 
 export default function App() {
@@ -18,7 +17,7 @@ export default function App() {
     hasLaptop: '',
     laptopSpecs: '',
     isComputerLiterate: '',
-    cv: null,
+    cvLink: '',
     available12h: '',
     hasBackupPower: '',
     canFollowInstructions: '',
@@ -28,12 +27,8 @@ export default function App() {
   });
 
   const handleChange = (e) => {
-    const { name, value, type, files } = e.target;
-    if (type === 'file') {
-      setFormData(prev => ({ ...prev, [name]: files[0] || null }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
@@ -49,7 +44,11 @@ export default function App() {
       if (!formData.hasDegree) newErrors.hasDegree = 'Please select an option';
       if (!formData.hasLaptop) newErrors.hasLaptop = 'Please select an option';
       if (!formData.isComputerLiterate) newErrors.isComputerLiterate = 'Please select an option';
-      if (!formData.cv) newErrors.cv = 'Please upload your CV';
+      if (!formData.cvLink.trim()) {
+        newErrors.cvLink = 'Please paste the Google Drive link to your CV';
+      } else if (!/^https?:\/\/.+/.test(formData.cvLink.trim())) {
+        newErrors.cvLink = 'Please enter a valid URL starting with https://';
+      }
     }
     if (step === 3) {
       if (!formData.available12h) newErrors.available12h = 'Please select an option';
@@ -81,7 +80,7 @@ export default function App() {
     setSubmitting(true);
     const data = new FormData();
     data.append("access_key", WEB3FORMS_KEY);
-    data.append("subject", "New Job Application");
+    data.append("subject", `New Job Application - ${formData.fullName}`);
     data.append("from_name", formData.fullName);
 
     Object.entries(formData).forEach(([key, value]) => {
@@ -209,10 +208,18 @@ export default function App() {
             </div>
 
             <div className="field">
-              <label>Upload your CV / Resume</label>
-              <input type="file" name="cv" accept=".pdf,.doc,.docx" onChange={handleChange} />
-              <div className="hint">PDF, DOC, or DOCX format preferred.</div>
-              {errors.cv && <div className="error">{errors.cv}</div>}
+              <label>CV / Resume (Google Drive Link)</label>
+              <input
+                type="url"
+                name="cvLink"
+                value={formData.cvLink}
+                onChange={handleChange}
+                placeholder="https://drive.google.com/file/d/..."
+              />
+              <div className="hint">
+                Upload your CV to Google Drive, set access to <strong>"Anyone with the link"</strong>, and paste the link here.
+              </div>
+              {errors.cvLink && <div className="error">{errors.cvLink}</div>}
             </div>
           </div>
 
