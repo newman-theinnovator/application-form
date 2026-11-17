@@ -210,7 +210,7 @@ export default function App() {
             <div className="field">
               <label>CV / Resume (Google Drive Link)</label>
               <input
-                type="url"
+                type="text"
                 name="cvLink"
                 value={formData.cvLink}
                 onChange={handleChange}
