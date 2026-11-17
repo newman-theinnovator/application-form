@@ -110,6 +110,29 @@ export default function App() {
     }
   };
 
+  const renderFooter = () => (
+    <footer
+      style={{
+        marginTop: '24px',
+        paddingTop: '16px',
+        borderTop: '1px solid #e5e7eb',
+        textAlign: 'center',
+        fontSize: '0.85rem',
+        color: '#6b7280'
+      }}
+    >
+      Design by{' '}
+      <a
+        href="https://newmanukpakacom.vercel.app"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ color: 'inherit', fontWeight: 600, textDecoration: 'underline' }}
+      >
+        NewMan
+      </a>
+    </footer>
+  );
+
   const progress = ((currentStep - 1) / TOTAL_STEPS) * 100;
 
   if (succeeded) {
@@ -121,6 +144,7 @@ export default function App() {
             <h2>Application Received</h2>
             <p>Thank you for applying. We will review your submission and contact you if you meet our requirements.</p>
           </div>
+          {renderFooter()}
         </div>
       </div>
     );
@@ -313,6 +337,8 @@ export default function App() {
             )}
           </div>
         </form>
+
+        {renderFooter()}
       </div>
     </div>
   );
