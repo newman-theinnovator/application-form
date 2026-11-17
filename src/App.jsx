@@ -7,7 +7,7 @@ export default function App() {
   const [currentStep, setCurrentStep] = useState(1);
   const [errors, setErrors] = useState({});
 
-  // Replace "mrpqqeag" with your real Formspree form ID
+  // Replace with your real Formspree form ID
   const [state, handleSubmit] = useForm("mrpqqeag");
 
   const [formData, setFormData] = useState({
@@ -67,10 +67,8 @@ export default function App() {
   };
 
   const next = () => {
-    if (validateStep(currentStep)) {
-      if (currentStep < TOTAL_STEPS) {
-        setCurrentStep(s => s + 1);
-      }
+    if (validateStep(currentStep) && currentStep < TOTAL_STEPS) {
+      setCurrentStep(s => s + 1);
     }
   };
 
@@ -106,8 +104,8 @@ export default function App() {
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* Step 1 */}
-          <div className={`form-step ${currentStep === 1 ? 'active' : ''}`}>
+          {/* All fields stay in the DOM so Formspree receives everything */}
+          <div style={{ display: currentStep === 1 ? 'block' : 'none' }}>
             <div className="field">
               <label>Full Name</label>
               <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Your full name" />
@@ -127,8 +125,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Step 2 */}
-          <div className={`form-step ${currentStep === 2 ? 'active' : ''}`}>
+          <div style={{ display: currentStep === 2 ? 'block' : 'none' }}>
             <div className="field">
               <label>Do you hold a university degree or equivalent qualification?</label>
               <div className="radio-group">
@@ -184,8 +181,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Step 3 */}
-          <div className={`form-step ${currentStep === 3 ? 'active' : ''}`}>
+          <div style={{ display: currentStep === 3 ? 'block' : 'none' }}>
             <div className="field">
               <label>Are you available to work up to 12 hours per day?</label>
               <div className="radio-group">
@@ -226,8 +222,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Step 4 */}
-          <div className={`form-step ${currentStep === 4 ? 'active' : ''}`}>
+          <div style={{ display: currentStep === 4 ? 'block' : 'none' }}>
             <div className="field">
               <label>Do you have prior experience with remote work or earning income online?</label>
               <div className="radio-group">
