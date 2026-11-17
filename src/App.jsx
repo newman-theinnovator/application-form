@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 
 const TOTAL_STEPS = 4;
-// Replace with your real Formspree form ID
-const FORMSPREE_ID = "mrpqqeag";
+// ↓↓↓ PUT YOUR REAL FORMSPREE FORM ID HERE ↓↓↓
+const FORMSPREE_ID = "YOUR_REAL_FORM_ID";
 
 export default function App() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -87,22 +87,23 @@ export default function App() {
     });
 
     try {
-      const response = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+      const response = await fetch(`https://formspree.io/f/${mrpqqeag}`, {
         method: 'POST',
         body: data,
-        headers: {
-          Accept: 'application/json'
-        }
+        headers: { Accept: 'application/json' }
       });
+
+      const result = await response.json();
 
       if (response.ok) {
         setSucceeded(true);
       } else {
-        alert('Something went wrong. Please try again.');
+        console.error('Formspree error:', result);
+        alert('Formspree error: ' + (result.error || JSON.stringify(result)));
       }
     } catch (err) {
       console.error(err);
-      alert('Network error. Please try again.');
+      alert('Network error: ' + err.message);
     } finally {
       setSubmitting(false);
     }
