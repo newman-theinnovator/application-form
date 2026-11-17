@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 
 const TOTAL_STEPS = 4;
-// ↓↓↓ PUT YOUR REAL FORMSPREE FORM ID HERE ↓↓↓
-const FORMSPREE_ID = "mrpqqeag";
+// ↓↓↓ PUT YOUR WEB3FORMS ACCESS KEY HERE ↓↓↓
+const WEB3FORMS_KEY = "a0f55f76-e0d7-4511-98e6-6b0469e088ba";
 
 export default function App() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -80,6 +80,10 @@ export default function App() {
 
     setSubmitting(true);
     const data = new FormData();
+    data.append("access_key", WEB3FORMS_KEY);
+    data.append("subject", "New Job Application");
+    data.append("from_name", formData.fullName);
+
     Object.entries(formData).forEach(([key, value]) => {
       if (value !== null && value !== '') {
         data.append(key, value);
@@ -87,23 +91,21 @@ export default function App() {
     });
 
     try {
-      const response = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
-        method: 'POST',
-        body: data,
-        headers: { Accept: 'application/json' }
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: data
       });
 
       const result = await response.json();
 
-      if (response.ok) {
+      if (result.success) {
         setSucceeded(true);
       } else {
-        console.error('Formspree error:', result);
-        alert('Formspree error: ' + (result.error || JSON.stringify(result)));
+        alert("Error: " + (result.message || "Something went wrong"));
       }
     } catch (err) {
       console.error(err);
-      alert('Network error: ' + err.message);
+      alert("Network error. Please try again.");
     } finally {
       setSubmitting(false);
     }
