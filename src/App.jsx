@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
+import { useForm, ValidationError } from '@formspree/react';
 
 const TOTAL_STEPS = 4;
 
 export default function App() {
   const [currentStep, setCurrentStep] = useState(1);
-  const [submitted, setSubmitted] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Replace "mrpqqeag" with your real Formspree form ID
+  const [state, handleSubmit] = useForm("mrpqqeag");
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -66,9 +68,7 @@ export default function App() {
 
   const next = () => {
     if (validateStep(currentStep)) {
-      if (currentStep === TOTAL_STEPS) {
-        submit();
-      } else {
+      if (currentStep < TOTAL_STEPS) {
         setCurrentStep(s => s + 1);
       }
     }
@@ -76,35 +76,9 @@ export default function App() {
 
   const prev = () => setCurrentStep(s => Math.max(1, s - 1));
 
-  const submit = async () => {
-    setSubmitting(true);
-    const data = new FormData();
-    Object.entries(formData).forEach(([key, value]) => {
-      if (value !== null && value !== '') data.append(key, value);
-    });
-
-    // Replace with your Formspree endpoint
-    const endpoint = 'https://formspree.io/f/mrpqqeag';
-
-    try {
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { Accept: 'application/json' },
-        body: data
-      });
-      if (res.ok) setSubmitted(true);
-      else setSubmitted(true);
-    } catch (err) {
-      console.error(err);
-      setSubmitted(true);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const progress = ((currentStep - 1) / TOTAL_STEPS) * 100;
 
-  if (submitted) {
+  if (state.succeeded) {
     return (
       <div className="container">
         <div className="card">
@@ -131,170 +105,177 @@ export default function App() {
           <div className="step-label">Step {currentStep} of {TOTAL_STEPS}</div>
         </div>
 
-        {/* Step 1 */}
-        <div className={`form-step ${currentStep === 1 ? 'active' : ''}`}>
-          <div className="field">
-            <label>Full Name</label>
-            <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Your full name" />
-            {errors.fullName && <div className="error">{errors.fullName}</div>}
-          </div>
-          <div className="field">
-            <label>Email Address</label>
-            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" />
-            <div className="hint">We'll use this to contact you about your application.</div>
-            {errors.email && <div className="error">{errors.email}</div>}
-          </div>
-          <div className="field">
-            <label>Phone Number</label>
-            <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+234 ..." />
-            {errors.phone && <div className="error">{errors.phone}</div>}
-          </div>
-        </div>
-
-        {/* Step 2 */}
-        <div className={`form-step ${currentStep === 2 ? 'active' : ''}`}>
-          <div className="field">
-            <label>Do you hold a university degree or equivalent qualification?</label>
-            <div className="radio-group">
-              {['Yes', 'No'].map(v => (
-                <label key={v} className={`radio-item ${formData.hasDegree === v ? 'selected' : ''}`}>
-                  <input type="radio" name="hasDegree" value={v} checked={formData.hasDegree === v} onChange={handleChange} />
-                  {v}
-                </label>
-              ))}
-            </div>
-            {errors.hasDegree && <div className="error">{errors.hasDegree}</div>}
-          </div>
-
-          <div className="field">
-            <label>Do you currently own a laptop computer?</label>
-            <div className="radio-group">
-              {['Yes', 'No'].map(v => (
-                <label key={v} className={`radio-item ${formData.hasLaptop === v ? 'selected' : ''}`}>
-                  <input type="radio" name="hasLaptop" value={v} checked={formData.hasLaptop === v} onChange={handleChange} />
-                  {v}
-                </label>
-              ))}
-            </div>
-            {errors.hasLaptop && <div className="error">{errors.hasLaptop}</div>}
-          </div>
-
-          {formData.hasLaptop === 'Yes' && (
+        <form onSubmit={handleSubmit}>
+          {/* Step 1 */}
+          <div className={`form-step ${currentStep === 1 ? 'active' : ''}`}>
             <div className="field">
-              <label>Laptop Make, Model & Key Specifications</label>
-              <textarea name="laptopSpecs" value={formData.laptopSpecs} onChange={handleChange} placeholder="e.g. HP Pavilion, Intel Core i5, 8GB RAM, 256GB SSD" />
-              <div className="hint">Please include processor, RAM, and storage if possible.</div>
+              <label>Full Name</label>
+              <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Your full name" />
+              {errors.fullName && <div className="error">{errors.fullName}</div>}
             </div>
-          )}
-
-          <div className="field">
-            <label>Are you computer literate?</label>
-            <div className="radio-group">
-              {['Yes', 'No'].map(v => (
-                <label key={v} className={`radio-item ${formData.isComputerLiterate === v ? 'selected' : ''}`}>
-                  <input type="radio" name="isComputerLiterate" value={v} checked={formData.isComputerLiterate === v} onChange={handleChange} />
-                  {v}
-                </label>
-              ))}
+            <div className="field">
+              <label>Email Address</label>
+              <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" />
+              <div className="hint">We'll use this to contact you about your application.</div>
+              {errors.email && <div className="error">{errors.email}</div>}
+              <ValidationError prefix="Email" field="email" errors={state.errors} />
             </div>
-            {errors.isComputerLiterate && <div className="error">{errors.isComputerLiterate}</div>}
-          </div>
-
-          <div className="field">
-            <label>Upload your CV / Resume</label>
-            <input type="file" name="cv" accept=".pdf,.doc,.docx" onChange={handleChange} />
-            <div className="hint">PDF, DOC, or DOCX format preferred.</div>
-            {errors.cv && <div className="error">{errors.cv}</div>}
-          </div>
-        </div>
-
-        {/* Step 3 */}
-        <div className={`form-step ${currentStep === 3 ? 'active' : ''}`}>
-          <div className="field">
-            <label>Are you available to work up to 12 hours per day?</label>
-            <div className="radio-group">
-              {['Yes', 'No'].map(v => (
-                <label key={v} className={`radio-item ${formData.available12h === v ? 'selected' : ''}`}>
-                  <input type="radio" name="available12h" value={v} checked={formData.available12h === v} onChange={handleChange} />
-                  {v}
-                </label>
-              ))}
+            <div className="field">
+              <label>Phone Number</label>
+              <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+234 ..." />
+              {errors.phone && <div className="error">{errors.phone}</div>}
             </div>
-            {errors.available12h && <div className="error">{errors.available12h}</div>}
           </div>
 
-          <div className="field">
-            <label>Do you have a reliable backup power source (generator, inverter, or UPS) to avoid interruptions?</label>
-            <div className="radio-group">
-              {['Yes', 'No'].map(v => (
-                <label key={v} className={`radio-item ${formData.hasBackupPower === v ? 'selected' : ''}`}>
-                  <input type="radio" name="hasBackupPower" value={v} checked={formData.hasBackupPower === v} onChange={handleChange} />
-                  {v}
-                </label>
-              ))}
+          {/* Step 2 */}
+          <div className={`form-step ${currentStep === 2 ? 'active' : ''}`}>
+            <div className="field">
+              <label>Do you hold a university degree or equivalent qualification?</label>
+              <div className="radio-group">
+                {['Yes', 'No'].map(v => (
+                  <label key={v} className={`radio-item ${formData.hasDegree === v ? 'selected' : ''}`}>
+                    <input type="radio" name="hasDegree" value={v} checked={formData.hasDegree === v} onChange={handleChange} />
+                    {v}
+                  </label>
+                ))}
+              </div>
+              {errors.hasDegree && <div className="error">{errors.hasDegree}</div>}
             </div>
-            {errors.hasBackupPower && <div className="error">{errors.hasBackupPower}</div>}
-          </div>
 
-          <div className="field">
-            <label>Are you able to carefully listen to and follow detailed instructions?</label>
-            <div className="radio-group">
-              {['Yes', 'No'].map(v => (
-                <label key={v} className={`radio-item ${formData.canFollowInstructions === v ? 'selected' : ''}`}>
-                  <input type="radio" name="canFollowInstructions" value={v} checked={formData.canFollowInstructions === v} onChange={handleChange} />
-                  {v}
-                </label>
-              ))}
+            <div className="field">
+              <label>Do you currently own a laptop computer?</label>
+              <div className="radio-group">
+                {['Yes', 'No'].map(v => (
+                  <label key={v} className={`radio-item ${formData.hasLaptop === v ? 'selected' : ''}`}>
+                    <input type="radio" name="hasLaptop" value={v} checked={formData.hasLaptop === v} onChange={handleChange} />
+                    {v}
+                  </label>
+                ))}
+              </div>
+              {errors.hasLaptop && <div className="error">{errors.hasLaptop}</div>}
             </div>
-            {errors.canFollowInstructions && <div className="error">{errors.canFollowInstructions}</div>}
-          </div>
-        </div>
 
-        {/* Step 4 */}
-        <div className={`form-step ${currentStep === 4 ? 'active' : ''}`}>
-          <div className="field">
-            <label>Do you have prior experience with remote work or earning income online?</label>
-            <div className="radio-group">
-              {['Yes', 'No'].map(v => (
-                <label key={v} className={`radio-item ${formData.hasRemoteExperience === v ? 'selected' : ''}`}>
-                  <input type="radio" name="hasRemoteExperience" value={v} checked={formData.hasRemoteExperience === v} onChange={handleChange} />
-                  {v}
-                </label>
-              ))}
+            {formData.hasLaptop === 'Yes' && (
+              <div className="field">
+                <label>Laptop Make, Model & Key Specifications</label>
+                <textarea name="laptopSpecs" value={formData.laptopSpecs} onChange={handleChange} placeholder="e.g. HP Pavilion, Intel Core i5, 8GB RAM, 256GB SSD" />
+                <div className="hint">Please include processor, RAM, and storage if possible.</div>
+              </div>
+            )}
+
+            <div className="field">
+              <label>Are you computer literate?</label>
+              <div className="radio-group">
+                {['Yes', 'No'].map(v => (
+                  <label key={v} className={`radio-item ${formData.isComputerLiterate === v ? 'selected' : ''}`}>
+                    <input type="radio" name="isComputerLiterate" value={v} checked={formData.isComputerLiterate === v} onChange={handleChange} />
+                    {v}
+                  </label>
+                ))}
+              </div>
+              {errors.isComputerLiterate && <div className="error">{errors.isComputerLiterate}</div>}
             </div>
-            {errors.hasRemoteExperience && <div className="error">{errors.hasRemoteExperience}</div>}
+
+            <div className="field">
+              <label>Upload your CV / Resume</label>
+              <input type="file" name="cv" accept=".pdf,.doc,.docx" onChange={handleChange} />
+              <div className="hint">PDF, DOC, or DOCX format preferred.</div>
+              {errors.cv && <div className="error">{errors.cv}</div>}
+            </div>
           </div>
 
-          <div className="field">
-            <label>What is your budget for the training phase?</label>
-            <select name="budget" value={formData.budget} onChange={handleChange}>
-              <option value="">Select your budget range</option>
-              <option value="Below $100">Below $100</option>
-              <option value="$100">$100</option>
-              <option value="$150">$150</option>
-              <option value="$200">$200</option>
-              <option value="$250">$250</option>
-            </select>
-            <div className="hint">Successful candidates can expect a minimum of $400 monthly after training.</div>
-            {errors.budget && <div className="error">{errors.budget}</div>}
+          {/* Step 3 */}
+          <div className={`form-step ${currentStep === 3 ? 'active' : ''}`}>
+            <div className="field">
+              <label>Are you available to work up to 12 hours per day?</label>
+              <div className="radio-group">
+                {['Yes', 'No'].map(v => (
+                  <label key={v} className={`radio-item ${formData.available12h === v ? 'selected' : ''}`}>
+                    <input type="radio" name="available12h" value={v} checked={formData.available12h === v} onChange={handleChange} />
+                    {v}
+                  </label>
+                ))}
+              </div>
+              {errors.available12h && <div className="error">{errors.available12h}</div>}
+            </div>
+
+            <div className="field">
+              <label>Do you have a reliable backup power source (generator, inverter, or UPS) to avoid interruptions?</label>
+              <div className="radio-group">
+                {['Yes', 'No'].map(v => (
+                  <label key={v} className={`radio-item ${formData.hasBackupPower === v ? 'selected' : ''}`}>
+                    <input type="radio" name="hasBackupPower" value={v} checked={formData.hasBackupPower === v} onChange={handleChange} />
+                    {v}
+                  </label>
+                ))}
+              </div>
+              {errors.hasBackupPower && <div className="error">{errors.hasBackupPower}</div>}
+            </div>
+
+            <div className="field">
+              <label>Are you able to carefully listen to and follow detailed instructions?</label>
+              <div className="radio-group">
+                {['Yes', 'No'].map(v => (
+                  <label key={v} className={`radio-item ${formData.canFollowInstructions === v ? 'selected' : ''}`}>
+                    <input type="radio" name="canFollowInstructions" value={v} checked={formData.canFollowInstructions === v} onChange={handleChange} />
+                    {v}
+                  </label>
+                ))}
+              </div>
+              {errors.canFollowInstructions && <div className="error">{errors.canFollowInstructions}</div>}
+            </div>
           </div>
 
-          <div className="field">
-            <label>How much do you have readily available to start with?</label>
-            <input type="number" name="availableFunds" value={formData.availableFunds} onChange={handleChange} min="0" placeholder="e.g. 150" />
-            <div className="hint">Enter the amount in USD you can readily invest or have available to begin.</div>
-            {errors.availableFunds && <div className="error">{errors.availableFunds}</div>}
-          </div>
-        </div>
+          {/* Step 4 */}
+          <div className={`form-step ${currentStep === 4 ? 'active' : ''}`}>
+            <div className="field">
+              <label>Do you have prior experience with remote work or earning income online?</label>
+              <div className="radio-group">
+                {['Yes', 'No'].map(v => (
+                  <label key={v} className={`radio-item ${formData.hasRemoteExperience === v ? 'selected' : ''}`}>
+                    <input type="radio" name="hasRemoteExperience" value={v} checked={formData.hasRemoteExperience === v} onChange={handleChange} />
+                    {v}
+                  </label>
+                ))}
+              </div>
+              {errors.hasRemoteExperience && <div className="error">{errors.hasRemoteExperience}</div>}
+            </div>
 
-        <div className="actions">
-          {currentStep > 1 && (
-            <button type="button" className="btn-secondary" onClick={prev}>Back</button>
-          )}
-          <button type="button" className="btn-primary" onClick={next} disabled={submitting}>
-            {submitting ? 'Submitting...' : currentStep === TOTAL_STEPS ? 'Submit Application' : 'Continue'}
-          </button>
-        </div>
+            <div className="field">
+              <label>What is your budget for the training phase?</label>
+              <select name="budget" value={formData.budget} onChange={handleChange}>
+                <option value="">Select your budget range</option>
+                <option value="Below $100">Below $100</option>
+                <option value="$100">$100</option>
+                <option value="$150">$150</option>
+                <option value="$200">$200</option>
+                <option value="$250">$250</option>
+              </select>
+              <div className="hint">Successful candidates can expect a minimum of $400 monthly after training.</div>
+              {errors.budget && <div className="error">{errors.budget}</div>}
+            </div>
+
+            <div className="field">
+              <label>How much do you have readily available to start with?</label>
+              <input type="number" name="availableFunds" value={formData.availableFunds} onChange={handleChange} min="0" placeholder="e.g. 150" />
+              <div className="hint">Enter the amount in USD you can readily invest or have available to begin.</div>
+              {errors.availableFunds && <div className="error">{errors.availableFunds}</div>}
+            </div>
+          </div>
+
+          <div className="actions">
+            {currentStep > 1 && (
+              <button type="button" className="btn-secondary" onClick={prev}>Back</button>
+            )}
+            {currentStep < TOTAL_STEPS ? (
+              <button type="button" className="btn-primary" onClick={next}>Continue</button>
+            ) : (
+              <button type="submit" className="btn-primary" disabled={state.submitting}>
+                {state.submitting ? 'Submitting...' : 'Submit Application'}
+              </button>
+            )}
+          </div>
+        </form>
       </div>
     </div>
   );
